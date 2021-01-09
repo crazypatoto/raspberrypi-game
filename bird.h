@@ -31,14 +31,16 @@ public:
     QPoint pos();
     QColor getCurrentPixelColor(int x, int y);
     bool contains(int x, int y);
+    bool checkShot(QPoint pos);
 
 private:
     QMovie *bird_movie;
     QMovie *bird_die_movie;
-    QLabel *bird_label;
+    QLabel *bird_label;    
     QSoundEffect bird_die_effect;
     int movie_width = 0;
     int movie_height = 0;
+    bool isShot;
 };
 
 #endif // BIRD_H

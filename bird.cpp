@@ -26,6 +26,7 @@ bird::bird(QWidget *parent, fly_direction direction)
     movie_width = bird_movie->scaledSize().width();
     movie_height = bird_movie->scaledSize().height();
     bird_label->setGeometry(0, 0, movie_width, movie_height);
+    isShot = false;
     this->hide();
 }
 
@@ -43,7 +44,26 @@ QColor bird::getCurrentPixelColor(int x, int y)
 
 bool bird::contains(int x, int y)
 {
+
     return bird_label->rect().contains(x, y);
+}
+
+bool bird::checkShot(QPoint pos)
+{
+    if(isShot){
+        return false;
+    }
+    if (this->contains(pos.x() - this->pos().x(), pos.y() - this->pos().y()))
+    {
+        QColor bd_color = this->getCurrentPixelColor(pos.x() - this->pos().x(), pos.y() - this->pos().y());
+        if (bd_color.alpha() == 255)
+        {
+            isShot = true;
+            return true;
+        }
+        printf("Alpha: %d\n", bd_color.alpha());
+    }
+    return false;
 }
 
 void bird::setLocation(int x, int y)
@@ -55,6 +75,7 @@ void bird::show()
 {
     bird_label->setMovie(bird_movie);
     bird_label->setVisible(true);
+    isShot = false;
 }
 
 void bird::hide()
