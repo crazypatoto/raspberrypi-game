@@ -15,8 +15,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     effect.setSource(QUrl::fromLocalFile("/home/pi/Desktop/game/resources/sounds/gun_shot.wav"));
     effect.setVolume(1.0f);
 
-    bullethole = new QImage("/home/pi/Desktop/game/resources/images/effects/bullethole.png");
-    *bullethole = bullethole->scaled(QSize(32, 32), Qt::IgnoreAspectRatio);
+    bullethole_image = new QImage("/home/pi/Desktop/game/resources/images/effects/bullethole.png");
+    *bullethole_image = bullethole_image->scaled(QSize(16, 16), Qt::IgnoreAspectRatio);
 }
 
 MainWindow::~MainWindow()
@@ -55,7 +55,8 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
         QColor bd_color = bd1->getCurrentPixelColor(event->x() - bd1->pos().x(), event->y() - bd1->pos().y());
         if (bd_color.alpha() == 255)
         {
-            bd1->hide();
+            //bd1->hide();
+            bd1->die();
         }
         printf("Alpha: %d\n", bd_color.alpha());
     }
@@ -65,7 +66,8 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
         QColor bd_color = bd2->getCurrentPixelColor(event->x() - bd2->pos().x(), event->y() - bd2->pos().y());
         if (bd_color.alpha() == 255)
         {
-            bd2->hide();
+            //bd2->hide();
+            bd2->die();
         }
         printf("Alpha: %d\n", bd_color.alpha());
     }
@@ -75,7 +77,8 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
         QColor bd_color = bd3->getCurrentPixelColor(event->x() - bd3->pos().x(), event->y() - bd3->pos().y());
         if (bd_color.alpha() == 255)
         {
-            bd3->hide();
+            //bd3->hide();
+            bd3->die();
         }
         printf("Alpha: %d\n", bd_color.alpha());
     }
@@ -88,9 +91,9 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
     //    }
 
     QPainter *bullethole_painter = new QPainter(bullethole_canvas);
-    bullethole_painter->drawImage(event->pos(), *bullethole);
-    bullethole_painter->end();    
-    update();
+    bullethole_painter->drawImage(QPoint(event->x() - bullethole_image->width() / 2, event->y() - bullethole_image->height() / 2), *bullethole_image);
+    bullethole_painter->end();
+    repaint();
 }
 
 void MainWindow::mouseReleaseEvent(QMouseEvent *)

@@ -1,20 +1,23 @@
 #include "bird.h"
 bird::bird(QWidget *parent, fly_direction direction)
-
 {
+    bird_die_effect.setSource(QUrl::fromLocalFile(BIRD_DIE_SOUND_LOCATION));
+    bird_die_effect.setVolume(1.0f);
     if (direction == fly_direction::right)
     {
         bird_movie = new QMovie(BIRDR_LOCATION);
+        bird_die_movie = new QMovie(BIRDR_DIE_LOCATION);
     }
     else if (direction == fly_direction::left)
     {
         bird_movie = new QMovie(BIRDL_LOCATION);
+        bird_die_movie = new QMovie(BIRDL_DIE_LOCATION);
     }
+    bird_movie->start();
 
     bird_movie->setScaledSize(QSize(200, 200));
     bird_label = new QLabel(parent);
     bird_label->setMovie(bird_movie);
-    bird_movie->start();
     for (size_t i = 0; i < QRandomGenerator::global()->generate() % 0xFF; i++)
     {
         bird_movie->jumpToNextFrame();
@@ -49,10 +52,19 @@ void bird::setLocation(int x, int y)
 
 void bird::show()
 {
+    bird_label->setMovie(bird_movie);
     bird_label->setVisible(true);
 }
 
 void bird::hide()
 {
+    //bird_label->setMovie(new QMovie(BIRDR_DIE_LOCATION));
     bird_label->setVisible(false);
+}
+
+void bird::die()
+{
+    bird_die_effect.play();
+    bird_label->setMovie(bird_die_movie);
+    bird_die_movie->start();
 }

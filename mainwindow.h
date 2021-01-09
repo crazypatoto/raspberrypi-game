@@ -39,7 +39,7 @@ private slots:
 private:
     Ui::MainWindow *ui;    
     QImage *bullethole_canvas;
-    QImage *bullethole;
+    QImage *bullethole_image;
     QTimer *timer_bird;
 
     bird *bd1;
@@ -50,5 +50,6 @@ private:
 
     QSoundEffect effect;
 };
+
 
 #endif // MAINWINDOW_H
