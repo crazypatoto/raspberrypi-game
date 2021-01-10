@@ -53,15 +53,20 @@ bool bird::checkShot(QPoint pos)
     if(isShot){
         return false;
     }
+    if(bird_label->isVisible()==false){
+        return false;
+    }
     if (this->contains(pos.x() - this->pos().x(), pos.y() - this->pos().y()))
     {
+        
         QColor bd_color = this->getCurrentPixelColor(pos.x() - this->pos().x(), pos.y() - this->pos().y());
+        printf("Alpha: %d\n", bd_color.alpha());
         if (bd_color.alpha() == 255)
         {
             isShot = true;
             return true;
         }
-        printf("Alpha: %d\n", bd_color.alpha());
+        
     }
     return false;
 }

@@ -15,6 +15,9 @@
 #include <QSoundEffect>
 #include <QFontDatabase>
 #include <QCursor>
+#include <QGraphicsBlurEffect>
+#include <QList>
+
 namespace Ui
 {
     class MainWindow;
@@ -29,11 +32,10 @@ public:
     ~MainWindow();
 
 private slots:
-    void on_pushButton_clicked();
-    void timer_bird_timeout();
+    void on_pushButton_clicked();    
     void timer_mousetracking_timeout();
     void timer_game_timeout();
-    void timer_scoreboard_timeout();
+    void timer_scoreboard_animation_timeout();
     void mouseMoveEvent(QMouseEvent *event);
     void mousePressEvent(QMouseEvent *event);
     void mouseReleaseEvent(QMouseEvent *event);
@@ -57,35 +59,43 @@ private:
     QSoundEffect bgm_game_soundeffect;
     QSoundEffect gameover_soundeffect;
     QSoundEffect pick_soundeffect;
+    QGraphicsBlurEffect *scoreboard_blureffect;
+    QGraphicsBlurEffect *time_label_blureffect;
     QImage *bullethole_canvas;
     QImage *bullethole_image;
     QImage *menu_image;
     QImage *scoreboard_image;
-    QPixmap *background_img;
-    QTimer *timer_bird;
+    QPixmap *background_img;    
     QTimer *timer_mousetracking;
     QTimer *timer_game;
-    QTimer *timer_scoreboard;
+    QTimer *timer_scoreboard_animation;
     QLabel *scoreboard;
     QLabel *time_label;
     const QRect start_btn = QRect(475, 236, 336, 85);
     const QRect settings_btn = QRect(475, 359, 336, 85);
     const QRect exit_btn = QRect(475, 490, 336, 85);
+    const QRect continue_btn = QRect(508, 512, 267, 92);
     char menu_status = 0x00;
     char menu_status_prev = 0x00;
 
-    bird *bd1;
-    bird *bd2;
-    bird *bd3;
+    QList<bird *> birds;
+    // bird *bd1;
+    // bird *bd2;
+    // bird *bd3;
     //bird *birds
     int xpos = 0;
     int score = 0;
-    int gameTime = 0;
-    int scoreboard_xpos = 0;
+    const int gameTime_10ms = 6000;
+    int gameTimeCount_10ms = 0;
+    int scoreboard_ypos = 0;
+    int bird_shots = 0;
+    int total_shots = 0;
+    float accuarcy = 0.0f;
 
     void updateBackgroundImage();
     void gameStart();
     void gameOver();
+    void gameMenu();
 };
 
 #endif // MAINWINDOW_H
