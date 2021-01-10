@@ -2,6 +2,7 @@
 
 bird::bird(QWidget *parent, fly_direction direction)
 {
+    parentWidget = parent;
     bird_die_effect.setSource(QUrl::fromLocalFile(BIRD_DIE_SOUND));
     bird_die_effect.setVolume(1.0f);
     if (direction == fly_direction::right)
@@ -30,10 +31,22 @@ bird::bird(QWidget *parent, fly_direction direction)
     this->hide();
 }
 
+bird::~bird()
+{
+    delete bird_label;
+    delete bird_movie;
+    delete bird_die_movie;
+}
+
 QPoint bird::pos()
 {
     QPoint pt(bird_label->pos().x(), bird_label->pos().y());
     return pt;
+}
+
+int bird::width()
+{
+    return bird_label->width();
 }
 
 QColor bird::getCurrentPixelColor(int x, int y)
@@ -50,23 +63,25 @@ bool bird::contains(int x, int y)
 
 bool bird::checkShot(QPoint pos)
 {
-    if(isShot){
+    if (isShot)
+    {
         return false;
     }
-    if(bird_label->isVisible()==false){
+    if (bird_label->isVisible() == false)
+    {
         return false;
     }
     if (this->contains(pos.x() - this->pos().x(), pos.y() - this->pos().y()))
     {
-        
+
         QColor bd_color = this->getCurrentPixelColor(pos.x() - this->pos().x(), pos.y() - this->pos().y());
         printf("Alpha: %d\n", bd_color.alpha());
         if (bd_color.alpha() == 255)
         {
             isShot = true;
+            this->die();
             return true;
         }
-        
     }
     return false;
 }
@@ -74,6 +89,16 @@ bool bird::checkShot(QPoint pos)
 void bird::setLocation(int x, int y)
 {
     bird_label->setGeometry(x - (movie_width / 2), y - (movie_height / 2), movie_width, movie_height);
+}
+
+void bird::setXIncrement(int _increment)
+{
+    x_increment = _increment;
+}
+
+void bird::move()
+{
+    bird_label->setGeometry(bird_label->x() + x_increment, bird_label->y(), movie_width, movie_height);
 }
 
 void bird::show()
@@ -94,4 +119,31 @@ void bird::die()
     bird_die_effect.play();
     bird_label->setMovie(bird_die_movie);
     bird_die_movie->start();
+}
+
+bool bird::isDead()
+{
+    if (isShot && bird_die_movie->state() == QMovie::NotRunning)
+    {
+        return true;
+    }
+    if (isShot == false)
+    {
+        if (x_increment > 0)
+        {
+            if (bird_label->x() > parentWidget->width())
+            {
+                return true;
+            }
+        }
+        else
+        {
+            if (bird_label->x() + movie_width < 0)
+            {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }

@@ -1,6 +1,10 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#define BULLETHOLES_MAX (20)
+
+#include "bird.h"
+#include <unistd.h>
 #include <QMainWindow>
 #include <QPainter>
 #include <QPixmap>
@@ -8,8 +12,6 @@
 #include <QMovie>
 #include <QLabel>
 #include <QTimer>
-#include "bird.h"
-#include <unistd.h>
 #include <QMouseEvent>
 #include <QRect>
 #include <QSoundEffect>
@@ -17,6 +19,8 @@
 #include <QCursor>
 #include <QGraphicsBlurEffect>
 #include <QList>
+#include <QQueue>
+#include <QRandomGenerator>
 
 namespace Ui
 {
@@ -32,8 +36,9 @@ public:
     ~MainWindow();
 
 private slots:
-    void on_pushButton_clicked();    
+    void on_pushButton_clicked();
     void timer_mousetracking_timeout();
+    void timer_targets_timeout();
     void timer_game_timeout();
     void timer_scoreboard_animation_timeout();
     void mouseMoveEvent(QMouseEvent *event);
@@ -60,14 +65,14 @@ private:
     QSoundEffect gameover_soundeffect;
     QSoundEffect pick_soundeffect;
     QGraphicsBlurEffect *scoreboard_blureffect;
-    QGraphicsBlurEffect *time_label_blureffect;
-    QImage *bullethole_canvas;
+    QGraphicsBlurEffect *time_label_blureffect;    
     QImage *bullethole_image;
     QImage *menu_image;
     QImage *scoreboard_image;
-    QPixmap *background_img;    
+    QPixmap *background_img;
     QTimer *timer_mousetracking;
     QTimer *timer_game;
+    QTimer *timer_targets;
     QTimer *timer_scoreboard_animation;
     QLabel *scoreboard;
     QLabel *time_label;
@@ -76,26 +81,29 @@ private:
     const QRect exit_btn = QRect(475, 490, 336, 85);
     const QRect continue_btn = QRect(508, 512, 267, 92);
     char menu_status = 0x00;
-    char menu_status_prev = 0x00;
+    char menu_status_prev = 0x00;    
 
     QList<bird *> birds;
+    QQueue<QPoint> bulletholes;
     // bird *bd1;
     // bird *bd2;
     // bird *bd3;
-    //bird *birds
-    int xpos = 0;
+    //bird *birds    
     int score = 0;
-    const int gameTime_10ms = 6000;
-    int gameTimeCount_10ms = 0;
+    const int gameTime = 40;
+    const int gameStartDelayTime = 2;
+    int gameTimeCount = 0;
     int scoreboard_ypos = 0;
     int bird_shots = 0;
     int total_shots = 0;
     float accuarcy = 0.0f;
 
     void updateBackgroundImage();
+    void updateTime();
     void gameStart();
     void gameOver();
     void gameMenu();
+    void spawnBirds(int num);
 };
 
 #endif // MAINWINDOW_H

@@ -20,26 +20,33 @@ class bird
 public:
     enum class fly_direction
     {
-        left,
-        right
+        left = 0,
+        right = 1
     };
-    bird(QWidget *parent, fly_direction direction);
+    bird(QWidget *parent, fly_direction direction); 
+    ~bird();
     void setLocation(int x, int y);
+    void setXIncrement(int _increment);
+    void move();
     void show();
     void hide();
     void die();
+    bool isDead();
     QPoint pos();
+    int width();    
     QColor getCurrentPixelColor(int x, int y);
     bool contains(int x, int y);
     bool checkShot(QPoint pos);
 
 private:
+    QWidget *parentWidget;
     QMovie *bird_movie;
     QMovie *bird_die_movie;
-    QLabel *bird_label;    
+    QLabel *bird_label;
     QSoundEffect bird_die_effect;
     int movie_width = 0;
     int movie_height = 0;
+    int x_increment = 0;
     bool isShot;
 };
 

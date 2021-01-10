@@ -14,10 +14,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     // bd2 = new bird(this, bird::fly_direction::left);
     // bd3 = new bird(this, bird::fly_direction::right);
     timer_mousetracking = new QTimer(this);
+    timer_targets = new QTimer(this);
     timer_game = new QTimer(this);
     timer_scoreboard_animation = new QTimer(this);
 
     connect(timer_mousetracking, SIGNAL(timeout()), this, SLOT(timer_mousetracking_timeout()));
+    connect(timer_targets, SIGNAL(timeout()), this, SLOT(timer_targets_timeout()));
     connect(timer_game, SIGNAL(timeout()), this, SLOT(timer_game_timeout()));
     connect(timer_scoreboard_animation, SIGNAL(timeout()), this, SLOT(timer_scoreboard_animation_timeout()));
 
@@ -132,42 +134,45 @@ void MainWindow::timer_mousetracking_timeout()
     }
 }
 
+void MainWindow::timer_targets_timeout()
+{
+    for (int i = 0; i < birds.size(); i++)
+    {
+        birds.at(i)->move();
+        if (birds.at(i)->isDead())
+        {
+            delete birds.at(i);
+            birds.removeAt(i);
+        }
+    }
+    if (gameTimeCount > gameStartDelayTime)
+    {
+        printf("bird count = %d\n", birds.size());
+        if (birds.size() <= 2)
+        {
+            spawnBirds(1);
+        }
+    }
+}
+
 void MainWindow::timer_game_timeout()
 {
-    gameTimeCount_10ms++;
-    if (gameTimeCount_10ms == 300)
+    gameTimeCount++;
+    if (gameTimeCount == gameStartDelayTime)
     {
-        for (int i = 0; i < birds.size(); i++)
-        {
-            birds.at(i)->show();
-        }
-        // bd1->show();
-        // bd2->show();
-        // bd3->show();
-        xpos = -100;
+        spawnBirds(4);
     }
-    birds.at(0)->setLocation(xpos+=10, 100);
-    birds.at(1)->setLocation(this->width() - xpos, 200);
-    birds.at(2)->setLocation(xpos + 50, 300);
-    if(xpos > this->width()){
-        xpos = -100;
-    }
+    // else if (gameTimeCount > gameStartDelayTime)
+    // {
+    //     printf("bird count = %d\n", birds.size());
+    //     if (birds.size() <= 1)
+    //     {
+    //         spawnBirds(1);
+    //     }
+    // }
 
-    if (gameTimeCount_10ms % 100 == 0)
-    {
-        QString str;
-        str.sprintf("TIME %d:%02d", ((gameTime_10ms - gameTimeCount_10ms) / 100) / 60, ((gameTime_10ms - gameTimeCount_10ms) / 100) % 60);
-        if ((60000 - gameTimeCount_10ms) <= 10)
-        {
-            time_label->setStyleSheet("QLabel { color : red; }");
-        }
-        else
-        {
-            time_label->setStyleSheet("QLabel { color : white; }");
-        }
-        time_label->setText(str);
-    }
-    if (gameTimeCount_10ms == 6000)
+    updateTime();
+    if (gameTimeCount >= gameTime)
     {
         gameOver();
     }
@@ -179,15 +184,14 @@ void MainWindow::timer_scoreboard_animation_timeout()
     {
         // scoreboard_ypos += scoreboard_image->height() / 75;
         scoreboard_ypos += 10;
-        repaint();
     }
     else
     {
         scoreboard_ypos = 0;
-        repaint();
         timer_scoreboard_animation->stop();
         timer_mousetracking->start(16);
     }
+    repaint();
 }
 
 void MainWindow::mouseMoveEvent(QMouseEvent *)
@@ -223,27 +227,12 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
         total_shots++;
         for (int i = 0; i < birds.size(); i++)
         {
-            if (birds.at(i)->checkShot(event->pos()))
-            {
-                bird_shot_count++;
-                birds.at(i)->die();
-            }
+            bird_shot_count += birds.at(i)->checkShot(event->pos());
+            // if (birds.at(i)->checkShot(event->pos()))
+            // {
+            //     bird_shot_count++;
+            // }
         }
-        // if (bd1->checkShot(event->pos()))
-        // {
-        //     bird_shot_count++;
-        //     bd1->die();
-        // }
-        // if (bd2->checkShot(event->pos()))
-        // {
-        //     bird_shot_count++;
-        //     bd2->die();
-        // }
-        // if (bd3->checkShot(event->pos()))
-        // {
-        //     bird_shot_count++;
-        //     bd3->die();
-        // }
         score += bird_shot_count * 100;
         bird_shots += bird_shot_count;
         scoreboard->setText(QString::number(score));
@@ -266,9 +255,11 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
 
     if (bird_shot_count == 0)
     {
-        QPainter *bullethole_painter = new QPainter(bullethole_canvas);
-        bullethole_painter->drawImage(QPoint(event->x() - bullethole_image->width() / 2, event->y() - bullethole_image->height() / 2), *bullethole_image);
-        bullethole_painter->end();
+        if (bulletholes.size() >= BULLETHOLES_MAX)
+        {
+            bulletholes.dequeue();
+        }
+        bulletholes.enqueue(QPoint(event->x() - bullethole_image->width() / 2, event->y() - bullethole_image->height() / 2));
         repaint();
     }
 }
@@ -280,7 +271,7 @@ void MainWindow::mouseReleaseEvent(QMouseEvent *)
 void MainWindow::resizeEvent(QResizeEvent *)
 {
     updateBackgroundImage();
-    bullethole_canvas = new QImage(this->size(), QImage::Format_ARGB32);
+    bulletholes.clear();
 }
 
 void MainWindow::paintEvent(QPaintEvent *)
@@ -330,13 +321,15 @@ void MainWindow::paintEvent(QPaintEvent *)
     }
     if (gameState != gameState_prev)
     {
-        delete bullethole_canvas;
         updateBackgroundImage();
-        bullethole_canvas = new QImage(this->size(), QImage::Format_ARGB32);
+        bulletholes.clear();
         gameState_prev = gameState;
     }
-
-    painter.drawImage(QPoint(0, 0), *bullethole_canvas);
+    //painter.drawImage(QPoint(0, 0), *bullethole_canvas);
+    for (int i = 0; i < bulletholes.size(); i++)
+    {
+        painter.drawImage(bulletholes.at(i), *bullethole_image);
+    }
 }
 
 void MainWindow::updateBackgroundImage()
@@ -360,6 +353,21 @@ void MainWindow::updateBackgroundImage()
     this->setPalette(mainwindow_palette);
 }
 
+void MainWindow::updateTime()
+{
+    QString str;
+    str.sprintf("TIME %d:%02d", (gameTime - gameTimeCount) / 60, (gameTime - gameTimeCount) % 60);
+    if ((gameTime - gameTimeCount) <= 10)
+    {
+        time_label->setStyleSheet("QLabel { color : red; }");
+    }
+    else
+    {
+        time_label->setStyleSheet("QLabel { color : white; }");
+    }
+    time_label->setText(str);
+}
+
 void MainWindow::gameStart()
 {
     gameState = Start;
@@ -373,35 +381,40 @@ void MainWindow::gameStart()
     scoreboard->setVisible(true);
     time_label->setVisible(true);
 
+    //birds = QList<bird *>();
     score = 0;
     bird_shots = 0;
     total_shots = 0;
     scoreboard->setText(QString::number(score));
 
-    birds.clear();
-    birds.append(new bird(this, bird::fly_direction::right));
-    birds.append(new bird(this, bird::fly_direction::left));
-    birds.append(new bird(this, bird::fly_direction::right));
-
-    gameTimeCount_10ms = 0;
-    timer_game->start(1);
+    gameTimeCount = 0;
+    updateTime();
+    timer_game->start(1000);
+    timer_targets->start(16);
 }
 
 void MainWindow::gameOver()
 {
     gameState = Over;
+    timer_game->stop();
+    timer_targets->stop();
     bgm_game_soundeffect.stop();
     gameover_soundeffect.play();
 
+    for (int i = 0; i < birds.size(); i++)
+    {
+        delete birds.at(i);
+    }
+    birds.clear();
+
     scoreboard_blureffect->setBlurRadius(5);
     time_label_blureffect->setBlurRadius(5);
-    timer_game->stop();
 
     accuarcy = (float)bird_shots / (float)total_shots;
 
     scoreboard_ypos = -scoreboard_image->height();
     timer_mousetracking->stop();
-    timer_scoreboard_animation->start(16);
+    timer_scoreboard_animation->start(10);
     repaint();
 }
 
@@ -414,4 +427,42 @@ void MainWindow::gameMenu()
     time_label->setVisible(false);
 
     repaint();
+}
+
+void MainWindow::spawnBirds(int num)
+{
+    for (int i = 0; i < num; i++)
+    {
+        int direction = QRandomGenerator::global()->generate() & 0x01;
+        bird *bd;
+        if (direction)
+        {
+            bd = new bird(this, bird::fly_direction::right);
+            bd->setLocation(0 - bd->width() / 2, QRandomGenerator::global()->bounded(100, 500));
+            bd->setXIncrement(QRandomGenerator::global()->bounded(2, 15));
+        }
+        else
+        {
+            bd = new bird(this, bird::fly_direction::left);
+            bd->setLocation(this->width() + bd->width() / 2, QRandomGenerator::global()->bounded(100, 500));
+            bd->setXIncrement(-QRandomGenerator::global()->bounded(2, 15));
+        }
+        bd->show();
+        birds.append(bd);
+    }
+
+    // birds.append(new bird(this, bird::fly_direction::right));
+    // birds.append(new bird(this, bird::fly_direction::left));
+    // birds.append(new bird(this, bird::fly_direction::right));
+
+    // birds.at(0)->setLocation(0 - birds.at(0)->width() / 2, 100);
+    // birds.at(1)->setLocation(this->width() + birds.at(0)->width() / 2, 200);
+    // birds.at(2)->setLocation(0 - birds.at(0)->width() / 2, 300);
+    // birds.at(0)->setXIncrement(1);
+    // birds.at(1)->setXIncrement(-1);
+    // birds.at(2)->setXIncrement(5);
+    // for (int i = 0; i < birds.size(); i++)
+    // {
+    //     birds.at(i)->show();
+    // }
 }
