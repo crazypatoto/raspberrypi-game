@@ -64,6 +64,7 @@ private:
     QSoundEffect bgm_game_soundeffect;
     QSoundEffect gameover_soundeffect;
     QSoundEffect pick_soundeffect;
+    QSoundEffect beep_soundeffect;
     QGraphicsBlurEffect *scoreboard_blureffect;
     QGraphicsBlurEffect *time_label_blureffect;    
     QImage *bullethole_image;

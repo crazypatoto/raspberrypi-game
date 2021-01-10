@@ -40,6 +40,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     pick_soundeffect.setSource(QUrl::fromLocalFile("/home/pi/Desktop/game/resources/sounds/pick.wav"));
     pick_soundeffect.setVolume(1.0);
 
+    beep_soundeffect.setSource(QUrl::fromLocalFile("/home/pi/Desktop/game/resources/sounds/beep.wav"));
+    beep_soundeffect.setVolume(1.0);
+
     bullethole_image = new QImage("/home/pi/Desktop/game/resources/images/effects/bullethole.png");
     *bullethole_image = bullethole_image->scaled(QSize(16, 16), Qt::IgnoreAspectRatio);
 
@@ -359,6 +362,7 @@ void MainWindow::updateTime()
     str.sprintf("TIME %d:%02d", (gameTime - gameTimeCount) / 60, (gameTime - gameTimeCount) % 60);
     if ((gameTime - gameTimeCount) <= 10)
     {
+        beep_soundeffect.play();
         time_label->setStyleSheet("QLabel { color : red; }");
     }
     else
