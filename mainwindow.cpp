@@ -49,6 +49,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     menu_image = new QImage("/home/pi/Desktop/game/resources/images/menu.png");
     *menu_image = menu_image->scaled(QSize(menu_image->width() / 3, menu_image->height() / 3), Qt::KeepAspectRatio);
 
+    gamemode_menu_image = new QImage("/home/pi/Desktop/game/resources/images/gamemode_menu.png");
+    *gamemode_menu_image = gamemode_menu_image->scaled(QSize(gamemode_menu_image->width() / 3, gamemode_menu_image->height() / 3), Qt::KeepAspectRatio);
+
     scoreboard_image = new QImage("/home/pi/Desktop/game/resources/images/scoreboard.png");
     *scoreboard_image = scoreboard_image->scaled(QSize(scoreboard_image->width() * 0.4, scoreboard_image->height() * 0.4), Qt::KeepAspectRatio);
     //menu_image = new QImage("/home/pi/Desktop/game/resources/images/woodsign.png");
@@ -86,13 +89,6 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::on_pushButton_clicked()
-{
-    // bd1->show();
-    // bd2->show();
-    // bd3->show();
-    // xpos = -100;
-}
 
 void MainWindow::timer_mousetracking_timeout()
 {
@@ -115,6 +111,16 @@ void MainWindow::timer_mousetracking_timeout()
         else if (exit_btn.contains(mousePos.x(), mousePos.y()))
         {
             menu_status |= 0x04;
+        }
+        break;
+    case ModeSelect:
+        if (easy_btn.contains(mousePos.x(), mousePos.y()))
+        {
+            menu_status |= 0x20;
+        }
+        else if (hard_btn.contains(mousePos.x(), mousePos.y()))
+        {
+            menu_status |= 0x40;
         }
         break;
     case Start:
@@ -150,7 +156,7 @@ void MainWindow::timer_targets_timeout()
     }
     if (gameTimeCount > gameStartDelayTime)
     {
-        printf("bird count = %d\n", birds.size());
+        // printf("bird count = %d\n", birds.size());
         if (birds.size() <= 2)
         {
             spawnBirds(1);
@@ -215,8 +221,8 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
     case Menu:
         if (start_btn.contains(event->x(), event->y()))
         {
-            gameStart();
-            return;
+            gameModeSelect();
+            return;           
         }
         else if (settings_btn.contains(event->x(), event->y()))
         {
@@ -224,6 +230,20 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
         else if (exit_btn.contains(event->x(), event->y()))
         {
             QApplication::quit();
+        }
+        break;
+    case ModeSelect:
+        if (easy_btn.contains(event->x(), event->y()))
+        {
+            isEasyMode = true;
+            gameStart();
+            return;
+        }
+        else if (hard_btn.contains(event->x(), event->y()))
+        {
+            isEasyMode = false;
+            gameStart();
+            return;
         }
         break;
     case Start:
@@ -295,6 +315,14 @@ void MainWindow::paintEvent(QPaintEvent *)
         painter.setPen(menu_status & 0x04 ? Qt::red : Qt::white);
         painter.drawText(exit_btn, Qt::AlignCenter, tr("Exit"));
         break;
+    case ModeSelect:
+        painter.drawImage(QPoint(this->width() / 2 - menu_image->width() / 2, this->height() / 2 - menu_image->height() / 2), *gamemode_menu_image);
+        painter.setFont(QFont("vtks animal 2", 48));
+        painter.setPen(menu_status & 0x20 ? Qt::red : Qt::white);
+        painter.drawText(settings_btn, Qt::AlignCenter, tr("EASY"));
+        painter.setPen(menu_status & 0x40 ? Qt::red : Qt::white);
+        painter.drawText(exit_btn, Qt::AlignCenter, tr("HARD"));
+        break;
     case Start:
         break;
     case Over:
@@ -324,8 +352,9 @@ void MainWindow::paintEvent(QPaintEvent *)
     }
     if (gameState != gameState_prev)
     {
-        updateBackgroundImage();
+        printf("Game Mode change");
         bulletholes.clear();
+        updateBackgroundImage();        
         gameState_prev = gameState;
     }
     //painter.drawImage(QPoint(0, 0), *bullethole_canvas);
@@ -342,6 +371,9 @@ void MainWindow::updateBackgroundImage()
     case None:
         break;
     case Menu:
+        background_img = new QPixmap("/home/pi/Desktop/game/resources/images/backgrounds/blurred_backgournd.jpg");
+        break;
+    case ModeSelect:
         background_img = new QPixmap("/home/pi/Desktop/game/resources/images/backgrounds/blurred_backgournd.jpg");
         break;
     case Start:
@@ -370,6 +402,12 @@ void MainWindow::updateTime()
         time_label->setStyleSheet("QLabel { color : white; }");
     }
     time_label->setText(str);
+}
+
+void MainWindow::gameModeSelect()
+{
+    gameState = ModeSelect;
+    repaint();
 }
 
 void MainWindow::gameStart()
@@ -451,6 +489,7 @@ void MainWindow::spawnBirds(int num)
             bd->setLocation(this->width() + bd->width() / 2, QRandomGenerator::global()->bounded(100, 500));
             bd->setXIncrement(-QRandomGenerator::global()->bounded(2, 15));
         }
+        bd->setEasyShot(isEasyMode);
         bd->show();
         birds.append(bd);
     }

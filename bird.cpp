@@ -73,9 +73,14 @@ bool bird::checkShot(QPoint pos)
     }
     if (this->contains(pos.x() - this->pos().x(), pos.y() - this->pos().y()))
     {
-
+        if (isEasyShot)
+        {
+            isShot = true;
+            this->die();
+            return true;
+        }
         QColor bd_color = this->getCurrentPixelColor(pos.x() - this->pos().x(), pos.y() - this->pos().y());
-        printf("Alpha: %d\n", bd_color.alpha());
+        // printf("Alpha: %d\n", bd_color.alpha());
         if (bd_color.alpha() == 255)
         {
             isShot = true;
@@ -94,6 +99,11 @@ void bird::setLocation(int x, int y)
 void bird::setXIncrement(int _increment)
 {
     x_increment = _increment;
+}
+
+void bird::setEasyShot(bool isEasy)
+{
+    isEasyShot = isEasy;
 }
 
 void bird::move()

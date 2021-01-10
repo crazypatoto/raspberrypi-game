@@ -15,6 +15,7 @@
 #define BIRDR_DIE_IMAGE "/home/pi/Desktop/game/resources/images/birds/bird_right_die.gif"
 #define BIRD_DIE_SOUND "/home/pi/Desktop/game/resources/sounds/bird_die.wav"
 
+
 class bird
 {
 public:
@@ -27,6 +28,7 @@ public:
     ~bird();
     void setLocation(int x, int y);
     void setXIncrement(int _increment);
+    void setEasyShot(bool isEasy);
     void move();
     void show();
     void hide();
@@ -48,6 +50,7 @@ private:
     int movie_height = 0;
     int x_increment = 0;
     bool isShot;
+    bool isEasyShot = false;
 };
 
 #endif // BIRD_H

@@ -35,8 +35,7 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
-private slots:
-    void on_pushButton_clicked();
+private slots:    
     void timer_mousetracking_timeout();
     void timer_targets_timeout();
     void timer_game_timeout();
@@ -52,6 +51,7 @@ private:
     {
         None,
         Menu,
+        ModeSelect,
         Start,
         Over
     };
@@ -69,6 +69,7 @@ private:
     QGraphicsBlurEffect *time_label_blureffect;    
     QImage *bullethole_image;
     QImage *menu_image;
+    QImage *gamemode_menu_image;
     QImage *scoreboard_image;
     QPixmap *background_img;
     QTimer *timer_mousetracking;
@@ -80,6 +81,8 @@ private:
     const QRect start_btn = QRect(475, 236, 336, 85);
     const QRect settings_btn = QRect(475, 359, 336, 85);
     const QRect exit_btn = QRect(475, 490, 336, 85);
+    const QRect easy_btn = settings_btn;
+    const QRect hard_btn = exit_btn;
     const QRect continue_btn = QRect(508, 512, 267, 92);
     char menu_status = 0x00;
     char menu_status_prev = 0x00;    
@@ -98,10 +101,12 @@ private:
     int bird_shots = 0;
     int total_shots = 0;
     float accuarcy = 0.0f;
+    bool isEasyMode;
 
     void updateBackgroundImage();
     void updateTime();
-    void gameStart();
+    void gameModeSelect();
+    void gameStart();    
     void gameOver();
     void gameMenu();
     void spawnBirds(int num);
