@@ -28,6 +28,7 @@ bird::bird(QWidget *parent, fly_direction direction)
     movie_height = bird_movie->scaledSize().height();
     bird_label->setGeometry(0, 0, movie_width, movie_height);
     isShot = false;
+    isEasyShot = true;
     this->hide();
 }
 

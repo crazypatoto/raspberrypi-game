@@ -308,8 +308,8 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
         }
         else if (cancel_btn.contains(event->x(), event->y()))
         {
-            gameMenu();
             video_capture.release();
+            gameMenu();            
             return;
         }
         break;

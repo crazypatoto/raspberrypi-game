@@ -50,7 +50,7 @@ private:
     int movie_height = 0;
     int x_increment = 0;
     bool isShot;
-    bool isEasyShot = false;
+    bool isEasyShot = true;
 };
 
 #endif // BIRD_H
