@@ -309,7 +309,7 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
         else if (cancel_btn.contains(event->x(), event->y()))
         {
             video_capture.release();
-            gameMenu();            
+            gameMenu();
             return;
         }
         break;
@@ -675,7 +675,7 @@ void MainWindow::spawnBirds(int num)
             }
             else
             {
-                bd->setXIncrement(QRandomGenerator::global()->bounded(6, 25));
+                bd->setXIncrement(QRandomGenerator::global()->bounded(10, 30));
             }
         }
         else
@@ -688,7 +688,7 @@ void MainWindow::spawnBirds(int num)
             }
             else
             {
-                bd->setXIncrement(-QRandomGenerator::global()->bounded(6, 25));
+                bd->setXIncrement(-QRandomGenerator::global()->bounded(10, 30));
             }
         }
         bd->show();
@@ -700,7 +700,7 @@ void MainWindow::spawnPeople()
 {
     if (face_images.size() > 0)
     {
-        if ((people.size() == 0) && (QRandomGenerator::global()->generate() & 0x01))
+        if ((people.size() <= !isEasyMode) && (QRandomGenerator::global()->generate() & 0x01))
         {
             int direction = QRandomGenerator::global()->generate() & 0x01;
             int index = QRandomGenerator::global()->bounded(0, face_images.size() - 1);
