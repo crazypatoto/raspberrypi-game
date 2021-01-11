@@ -4,7 +4,7 @@
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     QFontDatabase fontDB;
-    fontDB.addApplicationFont("/home/pi/Desktop/game/resources/VTKS_ANIMAL_2.ttf");
+    fontDB.addApplicationFont("/home/pi/Desktop/qt-game/game/resources/VTKS_ANIMAL_2.ttf");
 
     ui->setupUi(this);
     this->setWindowState(Qt::WindowFullScreen);
@@ -17,44 +17,52 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     timer_targets = new QTimer(this);
     timer_game = new QTimer(this);
     timer_scoreboard_animation = new QTimer(this);
+    timer_camera = new QTimer(this);
 
     connect(timer_mousetracking, SIGNAL(timeout()), this, SLOT(timer_mousetracking_timeout()));
     connect(timer_targets, SIGNAL(timeout()), this, SLOT(timer_targets_timeout()));
     connect(timer_game, SIGNAL(timeout()), this, SLOT(timer_game_timeout()));
     connect(timer_scoreboard_animation, SIGNAL(timeout()), this, SLOT(timer_scoreboard_animation_timeout()));
+    connect(timer_camera, SIGNAL(timeout()), this, SLOT(timer_camera_timeout()));
 
-    shoot_soundeffect.setSource(QUrl::fromLocalFile("/home/pi/Desktop/game/resources/sounds/gun_shot.wav"));
+    shoot_soundeffect.setSource(QUrl::fromLocalFile("/home/pi/Desktop/qt-game/game/resources/sounds/gun_shot.wav"));
     shoot_soundeffect.setVolume(1.0);
 
-    bgm_menu_soundeffect.setSource(QUrl::fromLocalFile("/home/pi/Desktop/game/resources/sounds/bgm_menu.wav"));
+    bgm_menu_soundeffect.setSource(QUrl::fromLocalFile("/home/pi/Desktop/qt-game/game/resources/sounds/bgm_menu.wav"));
     bgm_menu_soundeffect.setVolume(0.7);
     bgm_menu_soundeffect.setLoopCount(QSoundEffect::Infinite);
 
-    bgm_game_soundeffect.setSource(QUrl::fromLocalFile("/home/pi/Desktop/game/resources/sounds/bgm_game.wav"));
+    bgm_game_soundeffect.setSource(QUrl::fromLocalFile("/home/pi/Desktop/qt-game/game/resources/sounds/bgm_game.wav"));
     bgm_game_soundeffect.setVolume(0.7);
     bgm_game_soundeffect.setLoopCount(QSoundEffect::Infinite);
 
-    gameover_soundeffect.setSource(QUrl::fromLocalFile("/home/pi/Desktop/game/resources/sounds/gameover.wav"));
+    gameover_soundeffect.setSource(QUrl::fromLocalFile("/home/pi/Desktop/qt-game/game/resources/sounds/gameover.wav"));
     gameover_soundeffect.setVolume(1.0);
 
-    pick_soundeffect.setSource(QUrl::fromLocalFile("/home/pi/Desktop/game/resources/sounds/pick.wav"));
+    pick_soundeffect.setSource(QUrl::fromLocalFile("/home/pi/Desktop/qt-game/game/resources/sounds/pick.wav"));
     pick_soundeffect.setVolume(1.0);
 
-    beep_soundeffect.setSource(QUrl::fromLocalFile("/home/pi/Desktop/game/resources/sounds/beep.wav"));
+    beep_soundeffect.setSource(QUrl::fromLocalFile("/home/pi/Desktop/qt-game/game/resources/sounds/beep.wav"));
     beep_soundeffect.setVolume(1.0);
 
-    bullethole_image = new QImage("/home/pi/Desktop/game/resources/images/effects/bullethole.png");
+    bullethole_image = new QImage("/home/pi/Desktop/qt-game/game/resources/images/effects/bullethole.png");
     *bullethole_image = bullethole_image->scaled(QSize(16, 16), Qt::IgnoreAspectRatio);
 
-    menu_image = new QImage("/home/pi/Desktop/game/resources/images/menu.png");
+    menu_image = new QImage("/home/pi/Desktop/qt-game/game/resources/images/menu.png");
     *menu_image = menu_image->scaled(QSize(menu_image->width() / 3, menu_image->height() / 3), Qt::KeepAspectRatio);
 
-    gamemode_menu_image = new QImage("/home/pi/Desktop/game/resources/images/gamemode_menu.png");
+    gamemode_menu_image = new QImage("/home/pi/Desktop/qt-game/game/resources/images/gamemode_menu.png");
     *gamemode_menu_image = gamemode_menu_image->scaled(QSize(gamemode_menu_image->width() / 3, gamemode_menu_image->height() / 3), Qt::KeepAspectRatio);
 
-    scoreboard_image = new QImage("/home/pi/Desktop/game/resources/images/scoreboard.png");
+    scoreboard_image = new QImage("/home/pi/Desktop/qt-game/game/resources/images/scoreboard.png");
     *scoreboard_image = scoreboard_image->scaled(QSize(scoreboard_image->width() * 0.4, scoreboard_image->height() * 0.4), Qt::KeepAspectRatio);
-    //menu_image = new QImage("/home/pi/Desktop/game/resources/images/woodsign.png");
+
+    picture_frame_image = new QImage("/home/pi/Desktop/qt-game/game/resources/images/picture_frame.png");
+    *picture_frame_image = picture_frame_image->scaled(QSize(picture_frame_image->width() * 1.5, picture_frame_image->height() * 1.5), Qt::KeepAspectRatio);
+
+    wood_button_image = new QImage("/home/pi/Desktop/qt-game/game/resources/images/wood_button.png");
+    *wood_button_image = wood_button_image->scaled(QSize(wood_button_image->width() * 0.4, wood_button_image->height() * 0.4), Qt::KeepAspectRatio);
+
     scoreboard = new QLabel(this);
     scoreboard->setGeometry(791, 530, 160, 59);
     scoreboard->setFont(QFont("vtks animal 2", 30));
@@ -82,13 +90,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     timer_mousetracking->start(16);
     bgm_menu_soundeffect.play();
+
+    camera_image = new QImage();
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
 }
-
 
 void MainWindow::timer_mousetracking_timeout()
 {
@@ -98,6 +107,12 @@ void MainWindow::timer_mousetracking_timeout()
     switch (gameState)
     {
     case None:
+        break;
+    case Settings:
+        if (capture_btn.contains(mousePos.x(), mousePos.y()))
+        {
+            menu_status |= 0x01;
+        }
         break;
     case Menu:
         if (start_btn.contains(mousePos.x(), mousePos.y()))
@@ -116,9 +131,13 @@ void MainWindow::timer_mousetracking_timeout()
     case ModeSelect:
         if (easy_btn.contains(mousePos.x(), mousePos.y()))
         {
-            menu_status |= 0x20;
+            menu_status |= 0x10;
         }
         else if (hard_btn.contains(mousePos.x(), mousePos.y()))
+        {
+            menu_status |= 0x20;
+        }
+        else if (return_btn.contains(mousePos.x(), mousePos.y()))
         {
             menu_status |= 0x40;
         }
@@ -203,6 +222,29 @@ void MainWindow::timer_scoreboard_animation_timeout()
     repaint();
 }
 
+void MainWindow::timer_camera_timeout()
+{
+    Mat frame, frame_RGB, flipped;
+    video_capture >> frame;
+    if (frame.empty())
+        return;
+
+    cvtColor(frame, frame_RGB, CV_BGR2RGB);
+    flip(frame_RGB, flipped, 1);
+    *camera_image = QImage((uchar *)flipped.data, flipped.cols, flipped.rows, flipped.step, QImage::Format_RGB888).copy();
+    //imshow("this is you, smile! :)", frame);
+
+    // imshow("this is you, smile! :)", frame);
+
+    // if (imwrite("test.jpg", frame))
+    // {
+    //     break;
+    // }
+    frame.release();
+    frame_RGB.release();
+    repaint();
+}
+
 void MainWindow::mouseMoveEvent(QMouseEvent *)
 {
     //printf("X: %d Y: %d\n", event->x(), event->y());
@@ -218,14 +260,22 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
     {
     case None:
         break;
+    case Settings:
+        if (capture_btn.contains(event->x(), event->y()))
+        {
+            captureFace();            
+        }
+        break;
     case Menu:
         if (start_btn.contains(event->x(), event->y()))
         {
             gameModeSelect();
-            return;           
+            return;
         }
         else if (settings_btn.contains(event->x(), event->y()))
         {
+            gameSettings();
+            return;
         }
         else if (exit_btn.contains(event->x(), event->y()))
         {
@@ -243,6 +293,11 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
         {
             isEasyMode = false;
             gameStart();
+            return;
+        }
+        else if (return_btn.contains(event->x(), event->y()))
+        {
+            gameMenu();
             return;
         }
         break;
@@ -305,6 +360,14 @@ void MainWindow::paintEvent(QPaintEvent *)
     {
     case None:
         break;
+    case Settings:
+        painter.drawImage(QPoint(this->width() / 2 - camera_image->width() / 2, 80), *camera_image);
+        painter.drawImage(QPoint(this->width() / 2 - picture_frame_image->width() / 2, 0), *picture_frame_image);
+        painter.drawImage(QPoint(this->width() / 2 - wood_button_image->width() / 2, 640), *wood_button_image);
+        painter.setFont(QFont("vtks animal 2", 42));
+        painter.setPen(menu_status & 0x01 ? Qt::red : Qt::white);
+        painter.drawText(capture_btn, Qt::AlignCenter, tr("Capture"));
+        break;
     case Menu:
         painter.drawImage(QPoint(this->width() / 2 - menu_image->width() / 2, this->height() / 2 - menu_image->height() / 2), *menu_image);
         painter.setFont(QFont("vtks animal 2", 48));
@@ -318,10 +381,12 @@ void MainWindow::paintEvent(QPaintEvent *)
     case ModeSelect:
         painter.drawImage(QPoint(this->width() / 2 - menu_image->width() / 2, this->height() / 2 - menu_image->height() / 2), *gamemode_menu_image);
         painter.setFont(QFont("vtks animal 2", 48));
+        painter.setPen(menu_status & 0x10 ? Qt::red : Qt::white);
+        painter.drawText(easy_btn, Qt::AlignCenter, tr("EASY"));
         painter.setPen(menu_status & 0x20 ? Qt::red : Qt::white);
-        painter.drawText(settings_btn, Qt::AlignCenter, tr("EASY"));
+        painter.drawText(hard_btn, Qt::AlignCenter, tr("HARD"));
         painter.setPen(menu_status & 0x40 ? Qt::red : Qt::white);
-        painter.drawText(exit_btn, Qt::AlignCenter, tr("HARD"));
+        painter.drawText(return_btn, Qt::AlignCenter, tr("RETURN"));
         break;
     case Start:
         break;
@@ -354,7 +419,7 @@ void MainWindow::paintEvent(QPaintEvent *)
     {
         printf("Game Mode change");
         bulletholes.clear();
-        updateBackgroundImage();        
+        updateBackgroundImage();
         gameState_prev = gameState;
     }
     //painter.drawImage(QPoint(0, 0), *bullethole_canvas);
@@ -370,17 +435,20 @@ void MainWindow::updateBackgroundImage()
     {
     case None:
         break;
+    case Settings:
+        background_img = new QPixmap("/home/pi/Desktop/qt-game/game/resources/images/backgrounds/blurred_backgournd.jpg");
+        break;
     case Menu:
-        background_img = new QPixmap("/home/pi/Desktop/game/resources/images/backgrounds/blurred_backgournd.jpg");
+        background_img = new QPixmap("/home/pi/Desktop/qt-game/game/resources/images/backgrounds/blurred_backgournd.jpg");
         break;
     case ModeSelect:
-        background_img = new QPixmap("/home/pi/Desktop/game/resources/images/backgrounds/blurred_backgournd.jpg");
+        background_img = new QPixmap("/home/pi/Desktop/qt-game/game/resources/images/backgrounds/blurred_backgournd.jpg");
         break;
     case Start:
-        background_img = new QPixmap("/home/pi/Desktop/game/resources/images/backgrounds/default_backgournd.jpg");
+        background_img = new QPixmap("/home/pi/Desktop/qt-game/game/resources/images/backgrounds/default_backgournd.jpg");
         break;
     case Over:
-        background_img = new QPixmap("/home/pi/Desktop/game/resources/images/backgrounds/blurred_backgournd.jpg");
+        background_img = new QPixmap("/home/pi/Desktop/qt-game/game/resources/images/backgrounds/blurred_backgournd.jpg");
         break;
     }
     QPalette mainwindow_palette;
@@ -408,6 +476,21 @@ void MainWindow::gameModeSelect()
 {
     gameState = ModeSelect;
     repaint();
+}
+
+void MainWindow::gameSettings()
+{
+    gameState = Settings;
+    repaint();
+
+    if (!video_capture.open(0))
+    {
+        gameMenu();
+        return;
+    }
+
+    printf("Camera open success!\n");
+    timer_camera->start(33);
 }
 
 void MainWindow::gameStart()
@@ -463,7 +546,10 @@ void MainWindow::gameOver()
 void MainWindow::gameMenu()
 {
     gameState = Menu;
-    bgm_menu_soundeffect.play();
+    if (gameState_prev != ModeSelect)
+    {
+        bgm_menu_soundeffect.play();
+    }
 
     scoreboard->setVisible(false);
     time_label->setVisible(false);
@@ -508,4 +594,20 @@ void MainWindow::spawnBirds(int num)
     // {
     //     birds.at(i)->show();
     // }
+}
+
+void MainWindow::captureFace()
+{
+    // Mat image;
+    Mat frame, flipped;
+
+    video_capture >> frame;
+    if (!frame.empty())
+    {
+        flip(frame, flipped, 1);
+        imwrite("capture.jpg", flipped);
+    }
+    // system("fswebcam image.jpg");
+    // image = imread("image.jpg", 1);
+    return;
 }

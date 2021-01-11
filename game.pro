@@ -32,3 +32,11 @@ HEADERS  += mainwindow.h \
     bird.h
 
 FORMS    += mainwindow.ui
+
+LIBS += -I/usr/include/opencv
+
+LIBS += /usr/lib/arm-linux-gnueabihf/libopencv_highgui.so \
+       /usr/lib/arm-linux-gnueabihf/libopencv_core.so    \
+       /usr/lib/arm-linux-gnueabihf/libopencv_imgproc.so \
+       /usr/lib/arm-linux-gnueabihf/libopencv_imgcodecs.so \
+       /usr/lib/arm-linux-gnueabihf/libopencv_videoio.so.3.2

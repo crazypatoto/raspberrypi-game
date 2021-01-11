@@ -9,11 +9,11 @@
 #include <QRandomGenerator>
 #include <QSoundEffect>
 
-#define BIRDL_IMAGE "/home/pi/Desktop/game/resources/images/birds/bird_left.gif"
-#define BIRDR_IMAGE "/home/pi/Desktop/game/resources/images/birds/bird_right.gif"
-#define BIRDL_DIE_IMAGE "/home/pi/Desktop/game/resources/images/birds/bird_left_die.gif"
-#define BIRDR_DIE_IMAGE "/home/pi/Desktop/game/resources/images/birds/bird_right_die.gif"
-#define BIRD_DIE_SOUND "/home/pi/Desktop/game/resources/sounds/bird_die.wav"
+#define BIRDL_IMAGE "/home/pi/Desktop/qt-game/game/resources/images/birds/bird_left.gif"
+#define BIRDR_IMAGE "/home/pi/Desktop/qt-game/game/resources/images/birds/bird_right.gif"
+#define BIRDL_DIE_IMAGE "/home/pi/Desktop/qt-game/game/resources/images/birds/bird_left_die.gif"
+#define BIRDR_DIE_IMAGE "/home/pi/Desktop/qt-game/game/resources/images/birds/bird_right_die.gif"
+#define BIRD_DIE_SOUND "/home/pi/Desktop/qt-game/game/resources/sounds/bird_die.wav"
 
 
 class bird
