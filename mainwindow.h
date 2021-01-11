@@ -137,6 +137,7 @@ private:
     void gameOver();
     void gameMenu();
     void spawnBirds(int num);
+    void spawnPeople();
     bool captureFace();
 };
 

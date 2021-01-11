@@ -17,7 +17,7 @@
 #define PERSON_IMAGE2 "/home/pi/Desktop/qt-game/game/resources/images/teletubbies/22.png"
 #define PERSON_IMAGE3 "/home/pi/Desktop/qt-game/game/resources/images/teletubbies/33.png"
 #define PERSON_IMAGE4 "/home/pi/Desktop/qt-game/game/resources/images/teletubbies/44.png"
-#define PERSON_DIE_IMAGE "/home/pi/Desktop/qt-game/game/resources/images/effects/explode.gif"
+#define PERSON_DIE_IMAGE "/home/pi/Desktop/qt-game/game/resources/images/effects/explode_once.gif"
 #define PERSON_DIE_SOUND "/home/pi/Desktop/qt-game/game/resources/sounds/bird_die_or.wav"
 
 class person

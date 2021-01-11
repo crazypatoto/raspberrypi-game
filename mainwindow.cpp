@@ -198,6 +198,16 @@ void MainWindow::timer_targets_timeout()
             birds.removeAt(i);
         }
     }
+    for (int i = 0; i < people.size(); i++)
+    {
+        people.at(i)->move();
+        if (people.at(i)->isDead())
+        {
+            delete people.at(i);
+            people.removeAt(i);
+        }
+    }
+
     if (gameTimeCount > gameStartDelayTime)
     {
         // printf("bird count = %d\n", birds.size());
@@ -205,6 +215,7 @@ void MainWindow::timer_targets_timeout()
         {
             spawnBirds(1);
         }
+        spawnPeople();
     }
 }
 
@@ -278,6 +289,7 @@ void MainWindow::mouseMoveEvent(QMouseEvent *)
 void MainWindow::mousePressEvent(QMouseEvent *event)
 {
     int bird_shot_count = 0;
+    int people_shot_count = 0;
     shoot_soundeffect.play();
     printf("(%d,%d)\n", event->x(), event->y());
 
@@ -297,6 +309,7 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
         else if (cancel_btn.contains(event->x(), event->y()))
         {
             gameMenu();
+            video_capture.release();
             return;
         }
         break;
@@ -348,12 +361,13 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
         for (int i = 0; i < birds.size(); i++)
         {
             bird_shot_count += birds.at(i)->checkShot(event->pos());
-            // if (birds.at(i)->checkShot(event->pos()))
-            // {
-            //     bird_shot_count++;
-            // }
+        }
+        for (int i = 0; i < people.size(); i++)
+        {
+            people_shot_count += people.at(i)->checkShot(event->pos());
         }
         score += bird_shot_count * 100;
+        score -= people_shot_count * 300;
         bird_shots += bird_shot_count;
         scoreboard->setText(QString::number(score));
         break;
@@ -613,6 +627,12 @@ void MainWindow::gameOver()
     }
     birds.clear();
 
+    for (int i = 0; i < people.size(); i++)
+    {
+        delete people.at(i);
+    }
+    people.clear();
+
     scoreboard_blureffect->setBlurRadius(5);
     time_label_blureffect->setBlurRadius(5);
 
@@ -642,48 +662,66 @@ void MainWindow::spawnBirds(int num)
 {
     for (int i = 0; i < num; i++)
     {
+
         int direction = QRandomGenerator::global()->generate() & 0x01;
         bird *bd;
         if (direction)
         {
             bd = new bird(this, bird::fly_direction::right);
             bd->setLocation(0 - bd->width() / 2, QRandomGenerator::global()->bounded(100, 500));
-            bd->setXIncrement(QRandomGenerator::global()->bounded(2, 15));
+            if (isEasyMode)
+            {
+                bd->setXIncrement(QRandomGenerator::global()->bounded(2, 15));
+            }
+            else
+            {
+                bd->setXIncrement(QRandomGenerator::global()->bounded(6, 25));
+            }
         }
         else
         {
             bd = new bird(this, bird::fly_direction::left);
             bd->setLocation(this->width() + bd->width() / 2, QRandomGenerator::global()->bounded(100, 500));
-            bd->setXIncrement(-QRandomGenerator::global()->bounded(2, 15));
+            if (isEasyMode)
+            {
+                bd->setXIncrement(-QRandomGenerator::global()->bounded(2, 15));
+            }
+            else
+            {
+                bd->setXIncrement(-QRandomGenerator::global()->bounded(6, 25));
+            }
         }
-        bd->setEasyShot(isEasyMode);
         bd->show();
         birds.append(bd);
     }
+}
 
-    for (int i = 0; i < face_images.size(); i++)
+void MainWindow::spawnPeople()
+{
+    if (face_images.size() > 0)
     {
-        person *p = new person(this, i, *face_images[i]);
-        p->setLocation(this->width() / 2, QRandomGenerator::global()->bounded(100, 500));
-        //p->setXIncrement(QRandomGenerator::global()->bounded(2, 15));
-        p->show();
-        people.append(p);
+        if ((people.size() == 0) && (QRandomGenerator::global()->generate() & 0x01))
+        {
+            int direction = QRandomGenerator::global()->generate() & 0x01;
+            int index = QRandomGenerator::global()->bounded(0, face_images.size() - 1);
+
+            person *p = new person(this, index, *face_images[index]);
+
+            if (direction)
+            {
+                p->setXIncrement(QRandomGenerator::global()->bounded(2, 5));
+                p->setLocation(0 - p->width() / 2, QRandomGenerator::global()->bounded(100, 500));
+            }
+            else
+            {
+                p->setXIncrement(-QRandomGenerator::global()->bounded(2, 5));
+                p->setLocation(this->width() + p->width() / 2, QRandomGenerator::global()->bounded(100, 500));
+            }
+            p->show();
+            people.append(p);
+            printf("Spawn people %d\n", index);
+        }
     }
-
-    // birds.append(new bird(this, bird::fly_direction::right));
-    // birds.append(new bird(this, bird::fly_direction::left));
-    // birds.append(new bird(this, bird::fly_direction::right));
-
-    // birds.at(0)->setLocation(0 - birds.at(0)->width() / 2, 100);
-    // birds.at(1)->setLocation(this->width() + birds.at(0)->width() / 2, 200);
-    // birds.at(2)->setLocation(0 - birds.at(0)->width() / 2, 300);
-    // birds.at(0)->setXIncrement(1);
-    // birds.at(1)->setXIncrement(-1);
-    // birds.at(2)->setXIncrement(5);
-    // for (int i = 0; i < birds.size(); i++)
-    // {
-    //     birds.at(i)->show();
-    // }
 }
 
 bool MainWindow::captureFace()

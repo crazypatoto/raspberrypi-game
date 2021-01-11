@@ -9,22 +9,22 @@ person::person(QWidget *parent, int person, QImage image)
     switch (person)
     {
     case 0:
-        person_image = new QImage(PERSON_IMAGE1);       
+        person_image = new QImage(PERSON_IMAGE1);
         break;
     case 1:
-        person_image = new QImage(PERSON_IMAGE2);        
+        person_image = new QImage(PERSON_IMAGE2);
         break;
     case 2:
-        person_image = new QImage(PERSON_IMAGE3);        
+        person_image = new QImage(PERSON_IMAGE3);
         break;
     case 3:
-        person_image = new QImage(PERSON_IMAGE4);        
+        person_image = new QImage(PERSON_IMAGE4);
         break;
     default:
-        person_image = new QImage(PERSON_IMAGE1);        
+        person_image = new QImage(PERSON_IMAGE1);
         break;
     }
-    
+
     QPainter painter(person_image);
     switch (person)
     {
@@ -51,13 +51,24 @@ person::person(QWidget *parent, int person, QImage image)
     }
     painter.end();
 
-    person_width = person_image->width();
-    person_height = person_image->height();
     person_die_movie = new QMovie(PERSON_DIE_IMAGE);
+    person_die_movie->jumpToFrame(0);
+    person_die_movie->currentImage().size();
+    person_width = person_die_movie->currentImage().width();
+    person_height = person_die_movie->currentImage().height();
+
+    if (person_image->width() > person_width)
+    {
+        person_width = person_image->width();
+    }
+    if (person_image->height() > person_height)
+    {
+        person_height = person_image->height();
+    }
 
     person_label = new QLabel(parent);
     person_label->setPixmap(QPixmap::fromImage(*person_image));
-    person_label->setGeometry(0, 0, person_image->width(), person_image->height());
+    person_label->setGeometry(0, 0, person_width, person_height);
     isShot = false;
     this->hide();
 }
@@ -139,6 +150,10 @@ void person::setEasyShot(bool isEasy)
 
 void person::move()
 {
+    if (person_label->isVisible() == false)
+    {
+        return;
+    }
     person_label->setGeometry(person_label->x() + x_increment, person_label->y(), person_width, person_height);
 }
 
@@ -159,13 +174,19 @@ void person::die()
 {
     person_die_effect.play();
     person_label->setMovie(person_die_movie);
+    //person_label->setGeometry(0, 0, person_width, person_height);
     person_die_movie->start();
 }
 
 bool person::isDead()
 {
+    if (person_label->isVisible() == false)
+    {
+        return true;
+    }
     if (isShot && person_die_movie->state() == QMovie::NotRunning)
     {
+        printf("is DEAD\n");
         return true;
     }
     if (isShot == false)
