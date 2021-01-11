@@ -703,7 +703,7 @@ void MainWindow::spawnPeople()
         if ((people.size() <= !isEasyMode) && (QRandomGenerator::global()->generate() & 0x01))
         {
             int direction = QRandomGenerator::global()->generate() & 0x01;
-            int index = QRandomGenerator::global()->bounded(0, face_images.size() - 1);
+            int index = QRandomGenerator::global()->bounded(0, face_images.size() );
 
             person *p = new person(this, index, *face_images[index]);
 
