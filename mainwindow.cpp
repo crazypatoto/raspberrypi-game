@@ -661,6 +661,15 @@ void MainWindow::spawnBirds(int num)
         birds.append(bd);
     }
 
+    for (int i = 0; i < face_images.size(); i++)
+    {
+        person *p = new person(this, i, *face_images[i]);
+        p->setLocation(this->width() / 2, QRandomGenerator::global()->bounded(100, 500));
+        //p->setXIncrement(QRandomGenerator::global()->bounded(2, 15));
+        p->show();
+        people.append(p);
+    }
+
     // birds.append(new bird(this, bird::fly_direction::right));
     // birds.append(new bird(this, bird::fly_direction::left));
     // birds.append(new bird(this, bird::fly_direction::right));
@@ -720,7 +729,7 @@ bool MainWindow::captureFace()
 
             QImage *image = new QImage(fileName);
             //*image = image->scaled(QSize(80, 80), Qt::KeepAspectRatio);
-            *image = image->scaledToWidth(80);
+            //*image = image->scaledToWidth(80);
             face_images.append(image);
         }
         // for (int i = 0; i < face_images.size(); i++)

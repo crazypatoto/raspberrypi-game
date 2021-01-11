@@ -4,6 +4,7 @@
 #define BULLETHOLES_MAX (20)
 
 #include "bird.h"
+#include "person.h"
 #include <unistd.h>
 #include <QMainWindow>
 #include <QPainter>
@@ -111,6 +112,7 @@ private:
     char menu_status_prev = 0x00;
 
     QList<bird *> birds;
+    QList<person *> people;
     QQueue<QPoint> bulletholes;
     QVector<QImage *> face_images;
 

@@ -26,10 +26,12 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    bird.cpp
+    bird.cpp\
+    person.cpp
 
 HEADERS  += mainwindow.h \
-    bird.h
+    bird.h\
+    person.h
 
 FORMS    += mainwindow.ui
 
