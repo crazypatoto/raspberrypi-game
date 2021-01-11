@@ -20,7 +20,10 @@
 #include <QGraphicsBlurEffect>
 #include <QList>
 #include <QQueue>
+#include <QVector>
 #include <QRandomGenerator>
+#include <QFile>
+#include <QTextStream>
 #include <opencv2/opencv.hpp>
 
 using namespace cv;
@@ -56,6 +59,7 @@ private:
         None,
         Menu,
         Settings,
+        Capture,
         ModeSelect,
         Start,
         Over
@@ -70,6 +74,7 @@ private:
     QSoundEffect gameover_soundeffect;
     QSoundEffect pick_soundeffect;
     QSoundEffect beep_soundeffect;
+    QSoundEffect shutter_soundeffect;
     QGraphicsBlurEffect *scoreboard_blureffect;
     QGraphicsBlurEffect *time_label_blureffect;
     QImage *bullethole_image;
@@ -79,6 +84,10 @@ private:
     QImage *camera_image;
     QImage *picture_frame_image;
     QImage *wood_button_image;
+    QImage *teletubbies_image;
+    QImage *teletubbies_mask1_image;
+    QImage *teletubbies_mask2_image;
+    QImage *teletubbies_mask3_image;
     QPixmap *background_img;
     QTimer *timer_mousetracking;
     QTimer *timer_game;
@@ -94,12 +103,16 @@ private:
     const QRect hard_btn = settings_btn;
     const QRect return_btn = exit_btn;
     const QRect continue_btn = QRect(508, 512, 267, 92);
-    const QRect capture_btn = QRect(489, 646, 294, 89);
+    const QRect capture_btn = QRect(238, 642, 294, 89);
+    const QRect cancel_btn = QRect(741, 642, 294, 89);
+    const QRect OK_btn = QRect(487, 55, 315, 95);
+    const QRect face_draw_rects[4] = {QRect(255, 607, 105, 73), QRect(449, 658, 86, 56), QRect(764, 657, 94, 56), QRect(967, 678, 100, 55)};
     char menu_status = 0x00;
     char menu_status_prev = 0x00;
 
     QList<bird *> birds;
     QQueue<QPoint> bulletholes;
+    QVector<QImage *> face_images;
 
     VideoCapture video_capture;
 
@@ -117,11 +130,12 @@ private:
     void updateTime();
     void gameModeSelect();
     void gameSettings();
+    void gameCapture();
     void gameStart();
     void gameOver();
     void gameMenu();
     void spawnBirds(int num);
-    void captureFace();
+    bool captureFace();
 };
 
 #endif // MAINWINDOW_H

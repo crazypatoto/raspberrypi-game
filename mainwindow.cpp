@@ -45,6 +45,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     beep_soundeffect.setSource(QUrl::fromLocalFile("/home/pi/Desktop/qt-game/game/resources/sounds/beep.wav"));
     beep_soundeffect.setVolume(1.0);
 
+    shutter_soundeffect.setSource(QUrl::fromLocalFile("/home/pi/Desktop/qt-game/game/resources/sounds/shutter.wav"));
+    shutter_soundeffect.setVolume(1.0);
+
+    camera_image = new QImage();
+
     bullethole_image = new QImage("/home/pi/Desktop/qt-game/game/resources/images/effects/bullethole.png");
     *bullethole_image = bullethole_image->scaled(QSize(16, 16), Qt::IgnoreAspectRatio);
 
@@ -62,6 +67,18 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     wood_button_image = new QImage("/home/pi/Desktop/qt-game/game/resources/images/wood_button.png");
     *wood_button_image = wood_button_image->scaled(QSize(wood_button_image->width() * 0.4, wood_button_image->height() * 0.4), Qt::KeepAspectRatio);
+
+    teletubbies_image = new QImage("/home/pi/Desktop/qt-game/game/resources/images/teletubbies/all.png");
+    *teletubbies_image = teletubbies_image->scaled(QSize(teletubbies_image->width() * 2.0, teletubbies_image->height() * 2.0), Qt::KeepAspectRatio);
+
+    teletubbies_mask1_image = new QImage("/home/pi/Desktop/qt-game/game/resources/images/teletubbies/mask_1.png");
+    *teletubbies_mask1_image = teletubbies_mask1_image->scaled(QSize(teletubbies_mask1_image->width() * 2.0, teletubbies_mask1_image->height() * 2.0), Qt::KeepAspectRatio);
+
+    teletubbies_mask2_image = new QImage("/home/pi/Desktop/qt-game/game/resources/images/teletubbies/mask_2.png");
+    *teletubbies_mask2_image = teletubbies_mask2_image->scaled(QSize(teletubbies_mask2_image->width() * 2.0, teletubbies_mask2_image->height() * 2.0), Qt::KeepAspectRatio);
+
+    teletubbies_mask3_image = new QImage("/home/pi/Desktop/qt-game/game/resources/images/teletubbies/mask_3.png");
+    *teletubbies_mask3_image = teletubbies_mask3_image->scaled(QSize(teletubbies_mask3_image->width() * 2.0, teletubbies_mask3_image->height() * 2.0), Qt::KeepAspectRatio);
 
     scoreboard = new QLabel(this);
     scoreboard->setGeometry(791, 530, 160, 59);
@@ -90,8 +107,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     timer_mousetracking->start(16);
     bgm_menu_soundeffect.play();
-
-    camera_image = new QImage();
 }
 
 MainWindow::~MainWindow()
@@ -111,7 +126,17 @@ void MainWindow::timer_mousetracking_timeout()
     case Settings:
         if (capture_btn.contains(mousePos.x(), mousePos.y()))
         {
-            menu_status |= 0x01;
+            menu_status |= 0x10;
+        }
+        else if (cancel_btn.contains(mousePos.x(), mousePos.y()))
+        {
+            menu_status |= 0x20;
+        }
+        break;
+    case Capture:
+        if (OK_btn.contains(mousePos.x(), mousePos.y()))
+        {
+            menu_status |= 0x80;
         }
         break;
     case Menu:
@@ -263,7 +288,24 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
     case Settings:
         if (capture_btn.contains(event->x(), event->y()))
         {
-            captureFace();            
+            if (captureFace())
+            {
+                gameCapture();
+                return;
+            }
+        }
+        else if (cancel_btn.contains(event->x(), event->y()))
+        {
+            gameMenu();
+            return;
+        }
+        break;
+    case Capture:
+        if (OK_btn.contains(event->x(), event->y()))
+        {
+            gameMenu();
+            video_capture.release();
+            return;
         }
         break;
     case Menu:
@@ -363,10 +405,40 @@ void MainWindow::paintEvent(QPaintEvent *)
     case Settings:
         painter.drawImage(QPoint(this->width() / 2 - camera_image->width() / 2, 80), *camera_image);
         painter.drawImage(QPoint(this->width() / 2 - picture_frame_image->width() / 2, 0), *picture_frame_image);
-        painter.drawImage(QPoint(this->width() / 2 - wood_button_image->width() / 2, 640), *wood_button_image);
+        painter.drawImage(this->width() / 2 - 250 - wood_button_image->width() / 2, 640, *wood_button_image);
+        painter.drawImage(this->width() / 2 + 250 - wood_button_image->width() / 2, 640, *wood_button_image);
         painter.setFont(QFont("vtks animal 2", 42));
-        painter.setPen(menu_status & 0x01 ? Qt::red : Qt::white);
+        painter.setPen(menu_status & 0x10 ? Qt::red : Qt::white);
         painter.drawText(capture_btn, Qt::AlignCenter, tr("Capture"));
+        painter.setPen(menu_status & 0x20 ? Qt::red : Qt::white);
+        painter.drawText(cancel_btn, Qt::AlignCenter, tr("Cancel"));
+
+        break;
+    case Capture:
+        switch (face_images.size())
+        {
+        case 1:
+            painter.drawImage(QPoint(this->width() / 2 - teletubbies_image->width() / 2, this->height() - teletubbies_image->height()), *teletubbies_mask1_image);
+            break;
+        case 2:
+            painter.drawImage(QPoint(this->width() / 2 - teletubbies_image->width() / 2, this->height() - teletubbies_image->height()), *teletubbies_mask2_image);
+            break;
+        case 3:
+            painter.drawImage(QPoint(this->width() / 2 - teletubbies_image->width() / 2, this->height() - teletubbies_image->height()), *teletubbies_mask3_image);
+            break;
+        case 4:
+            painter.drawImage(QPoint(this->width() / 2 - teletubbies_image->width() / 2, this->height() - teletubbies_image->height()), *teletubbies_image);
+            break;
+        }
+        for (int i = 0; i < face_images.size(); i++)
+        {
+            // painter.drawImage(face_draw_points[i], *face_images[i]);
+            painter.drawImage(QPoint(face_draw_rects[i].x(), face_draw_rects[i].y()), face_images[i]->scaled(QSize(face_draw_rects[i].width(), face_draw_rects[i].height()), Qt::IgnoreAspectRatio));
+        }
+        painter.drawImage(this->width() / 2 - wood_button_image->width() / 2, 50, *wood_button_image);
+        painter.setFont(QFont("vtks animal 2", 42));
+        painter.setPen(menu_status & 0x80 ? Qt::red : Qt::white);
+        painter.drawText(OK_btn, Qt::AlignCenter, tr("OK"));
         break;
     case Menu:
         painter.drawImage(QPoint(this->width() / 2 - menu_image->width() / 2, this->height() / 2 - menu_image->height() / 2), *menu_image);
@@ -417,7 +489,7 @@ void MainWindow::paintEvent(QPaintEvent *)
     }
     if (gameState != gameState_prev)
     {
-        printf("Game Mode change");
+        printf("Game Mode changed\n");
         bulletholes.clear();
         updateBackgroundImage();
         gameState_prev = gameState;
@@ -436,6 +508,9 @@ void MainWindow::updateBackgroundImage()
     case None:
         break;
     case Settings:
+        background_img = new QPixmap("/home/pi/Desktop/qt-game/game/resources/images/backgrounds/blurred_backgournd.jpg");
+        break;
+    case Capture:
         background_img = new QPixmap("/home/pi/Desktop/qt-game/game/resources/images/backgrounds/blurred_backgournd.jpg");
         break;
     case Menu:
@@ -493,6 +568,12 @@ void MainWindow::gameSettings()
     timer_camera->start(33);
 }
 
+void MainWindow::gameCapture()
+{
+    gameState = Capture;
+    repaint();
+}
+
 void MainWindow::gameStart()
 {
     gameState = Start;
@@ -546,7 +627,7 @@ void MainWindow::gameOver()
 void MainWindow::gameMenu()
 {
     gameState = Menu;
-    if (gameState_prev != ModeSelect)
+    if (gameState_prev == Over)
     {
         bgm_menu_soundeffect.play();
     }
@@ -596,18 +677,60 @@ void MainWindow::spawnBirds(int num)
     // }
 }
 
-void MainWindow::captureFace()
+bool MainWindow::captureFace()
 {
     // Mat image;
-    Mat frame, flipped;
-
+    Mat frame, frame_RGB, flipped, original_flipped;
     video_capture >> frame;
     if (!frame.empty())
     {
-        flip(frame, flipped, 1);
-        imwrite("capture.jpg", flipped);
+        //timer_camera->stop();
+        cvtColor(frame, frame_RGB, CV_BGR2RGB);
+        flip(frame_RGB, flipped, 1);
+        *camera_image = QImage((uchar *)flipped.data, flipped.cols, flipped.rows, flipped.step, QImage::Format_RGB888).copy();
+        repaint();
+        shutter_soundeffect.play();
+        flip(frame, original_flipped, 1);
+        imwrite("capture.jpg", original_flipped);
+        system("python3 face_detection.py");
     }
-    // system("fswebcam image.jpg");
-    // image = imread("image.jpg", 1);
-    return;
+    int face_count = 0;
+    face_images.clear();
+    QFile inputFile("./faces/count");
+    if (inputFile.open(QIODevice::ReadOnly))
+    {
+        printf("File open success!\n");
+        QTextStream in(&inputFile);
+        while (!in.atEnd())
+        {
+            QString line = in.readLine();
+            face_count = line.toInt();
+        }
+        inputFile.close();
+    }
+    printf("Face Count = %d\n", face_count);
+
+    if (face_count > 0)
+    {
+        face_images.clear();
+        for (int i = 0; (i < face_count) && (i < 4); i++)
+        {
+            QString fileName;
+            fileName.sprintf("./faces/face%d.jpg", i);
+
+            QImage *image = new QImage(fileName);
+            //*image = image->scaled(QSize(80, 80), Qt::KeepAspectRatio);
+            *image = image->scaledToWidth(80);
+            face_images.append(image);
+        }
+        // for (int i = 0; i < face_images.size(); i++)
+        // {
+        //     QLabel *label = new QLabel(this);
+        //     label->setPixmap(QPixmap::fromImage(*face_images[i]));
+        //     label->setGeometry(i * 300, 500, face_images[i]->width(), face_images[i]->height());
+        // }
+        return true;
+    }
+
+    return false;
 }
