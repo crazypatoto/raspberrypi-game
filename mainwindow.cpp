@@ -9,6 +9,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->setupUi(this);
     this->setWindowState(Qt::WindowFullScreen);
     this->setMouseTracking(true);
+    this->setCursor(QCursor(QPixmap("/home/pi/Desktop/qt-game/game/resources/images/crosshair_small.png")));
+    //QCursor(QPixmap("mycursor.png");
 
     // bd1 = new bird(this, bird::fly_direction::right);
     // bd2 = new bird(this, bird::fly_direction::left);
@@ -402,6 +404,20 @@ void MainWindow::mouseReleaseEvent(QMouseEvent *)
 {
 }
 
+void MainWindow::keyPressEvent(QKeyEvent *event)
+{
+    if (event->key() == Qt::Key_Z)
+    {
+        printf("Crosshair ON!\n");
+        this->setCursor(QCursor(QPixmap("/home/pi/Desktop/qt-game/game/resources/images/crosshair_small.png")));
+    }
+    else if (event->key() == Qt::Key_X)
+    {
+        printf("Crosshair OFF!\n");
+        this->setCursor(Qt::BlankCursor);
+    }
+}
+
 void MainWindow::resizeEvent(QResizeEvent *)
 {
     updateBackgroundImage();
@@ -703,7 +719,7 @@ void MainWindow::spawnPeople()
         if ((people.size() <= !isEasyMode) && (QRandomGenerator::global()->generate() & 0x01))
         {
             int direction = QRandomGenerator::global()->generate() & 0x01;
-            int index = QRandomGenerator::global()->bounded(0, face_images.size() );
+            int index = QRandomGenerator::global()->bounded(0, face_images.size());
 
             person *p = new person(this, index, *face_images[index]);
 

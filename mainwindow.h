@@ -25,6 +25,7 @@
 #include <QRandomGenerator>
 #include <QFile>
 #include <QTextStream>
+#include <QKeyEvent>
 #include <opencv2/opencv.hpp>
 
 using namespace cv;
@@ -51,6 +52,7 @@ private slots:
     void mouseMoveEvent(QMouseEvent *event);
     void mousePressEvent(QMouseEvent *event);
     void mouseReleaseEvent(QMouseEvent *event);
+    void keyPressEvent(QKeyEvent *event);
     void resizeEvent(QResizeEvent *evt);
     void paintEvent(QPaintEvent *);
 
